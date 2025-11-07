@@ -168,7 +168,7 @@ If you prefer to build RDC from source, follow the steps below.
 1. **Clone the RDC Repository:**
 
     ```bash
-    git clone https://github.com/ROCm/rdc
+    git clone https://github.com/ROCm/rocm-systems.git
     cd rdc
     ```
 
