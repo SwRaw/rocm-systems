@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2015 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2015 - 2025 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1001,6 +1001,7 @@ typedef enum cudaGraphInstantiateFlags hipGraphInstantiateFlags;
 #define hipGraphInstantiateFlagDeviceLaunch cudaGraphInstantiateFlagDeviceLaunch
 #define hipGraphInstantiateFlagUseNodePriority cudaGraphInstantiateFlagUseNodePriority
 
+// Driver Entry Point Access
 typedef enum cudaDriverEntryPointQueryResult hipDriverEntryPointQueryResult;
 #define hipDriverEntryPointSuccess cudaDriverEntryPointSuccess
 #define hipDriverEntryPointSymbolNotFound cudaDriverEntryPointSymbolNotFound
@@ -1009,6 +1010,15 @@ typedef enum cudaDriverEntryPointQueryResult hipDriverEntryPointQueryResult;
 #define hipEnableDefault cudaEnableDefault
 #define hipEnableLegacyStream cudaEnableLegacyStream
 #define hipEnablePerThreadDefaultStream cudaEnablePerThreadDefaultStream
+
+typedef enum CUdriverProcAddressQueryResult hipDriverProcAddressQueryResult
+#define HIP_GET_PROC_ADDRESS_SUCCESS CU_GET_PROC_ADDRESS_SUCCESS
+#define HIP_GET_PROC_ADDRESS_SYMBOL_NOT_FOUND CU_GET_PROC_ADDRESS_SYMBOL_NOT_FOUND
+#define HIP_GET_PROC_ADDRESS_VERSION_NOT_SUFFICIENT CU_GET_PROC_ADDRESS_VERSION_NOT_SUFFICIENT
+
+#define HIP_GET_PROC_ADDRESS_DEFAULT CU_GET_PROC_ADDRESS_DEFAULT
+#define HIP_GET_PROC_ADDRESS_LEGACY_STREAM CU_GET_PROC_ADDRESS_LEGACY_STREAM
+#define HIP_GET_PROC_ADDRESS_PER_THREAD_DEFAULT_STREAM CU_GET_PROC_ADDRESS_PER_THREAD_DEFAULT_STREAM
 
 inline static hipError_t hipCUDAErrorTohipError(cudaError_t cuError) {
   switch (cuError) {
@@ -3762,6 +3772,11 @@ inline static hipError_t hipKernelGetLibrary(hipLibrary_t* library, hipKernel_t 
 
 inline static hipError_t hipKernelGetName(const char** name, hipKernel_t kernel) {
   return hipCUResultTohipError(cuKernelGetName(name, kernel));
+}
+
+inline static hipError_t hipKernelGetParamInfo(hipKernel_t kernel, size_t paramIndex, size_t* paramOffset,
+                                               size_t* paramSize) {
+  return hipCUResultTohipError(cuKernelGetParamInfo(kernel, paramIndex, paramOffset, paramSize));
 }
 
 inline static hipError_t hipLaunchKernel(const void* function_address, dim3 numBlocks,

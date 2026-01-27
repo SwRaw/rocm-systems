@@ -2,13 +2,24 @@
 
 Full documentation for HIP is available at [rocm.docs.amd.com](https://rocm.docs.amd.com/projects/HIP/en/latest/index.html)
 
+## HIP 8.0 for ROCm 8.0
+
+### Added
+
+* New HIP APIs
+    - `hipKernelGetParamInfo`   returns the offset and size of a kernel parameter
+* Support for `barrier_arrive` and `barrier_wait` for `grid_group` and `thread_block`.
+
+* New HIP supports
+    - `grid_group::block_rank()` returns the rank of the block in the calling thread
+
 ## HIP 7.2 for ROCm 7.2
 
 ### Added
 
 * New HIP APIs
-    - `hipLibraryEnumerateKernels` returns kernel handles within a library
-    - `hipKernelGetLibrary` returns library handle for a hipKernel_t handle
+    - `hipLibraryEnumerateKernels` returns Kernel handles within a library
+    - `hipKernelGetLibrary` returns Library handle for a hipKernel_t handle
     - `hipKernelGetName` returns function name for a hipKernel_t handle
     - `hipLibraryLoadData`      creates library object from code
     - `hipLibraryLoadFromFile`  creates library object from file
@@ -18,23 +29,23 @@ Full documentation for HIP is available at [rocm.docs.amd.com](https://rocm.docs
     - `hipStreamCopyAttributes` copies attributes from source stream to destination stream
     - `hipOccupancyAvailableDynamicSMemPerBlock` returns dynamic shared memory available per block when launching numBlocks blocks on CU.
 * New HIP flags
-   - `hipMemLocationTypeHost` enables handling virtual memory management in host memory location, in addition to device memory.
-   - Support for flags in hipGetProcAddress, enables searching for the per-thread version symbols.
-     - `HIP_GET_PROC_ADDRESS_DEFAULT`
-     - `HIP_GET_PROC_ADDRESS_LEGACY_STREAM`
-     - `HIP_GET_PROC_ADDRESS_PER_THREAD_DEFAULT_STREAM`
+    - `hipMemLocationTypeHost`, enables handling virtual memory management in host memory location, in addition to device memory.
+    - Support for flags in `hipGetProcAddress`, enables searching for the per-thread version symbols.
+      - `HIP_GET_PROC_ADDRESS_DEFAULT`
+      - `HIP_GET_PROC_ADDRESS_LEGACY_STREAM`
+      - `HIP_GET_PROC_ADDRESS_PER_THREAD_DEFAULT_STREAM`
 
 ### Resolved issues
 
-* Corrected the calculation of the value of maximum shared memory per multiprocessor, in HIP device properties.
+* Corrected the calculation of the value of maximum shared memory per multiprocessor, in HIP device properties. 
 
 ### Optimized
 
 * Graph node scaling:
-HIP runtime implements optimized doorbell ring mechanism for certain topologies of graph execution. It enables efficient batching of graph nodes. This enhancement provides better alignment with CUDA Graph optimizations.
+HIP runtime implements optimized doorbell ring mechanism for certain topologies of graph execution. It enables efficient batching of graph nodes. This enhancement provides better alignment with CUDA Graph optimizations. 
 HIP also adds a new performance test for HIP graphs with programmable topologies to measure graph performance across different structures. The test evaluates graph instantiation time, first launch time, repeat launch times, and end-to-end execution for various graph topologies. The test implements comprehensive timing measurements including CPU overhead and device execution time.
-* Back memory set (memset) optimization:
-HIP runtime now implements a back memory set (memset) optimization to improve how memset nodes are processed during graph execution. This enhancement specifically handles varying number of AQL (Architected Queue Language) packets for memset graph node due to graph node set params for AQL batch submission approach.
+* Back memory set (`memset`) optimization:
+HIP runtime now implements a back memory set (memset) optimization to improve how `memset` nodes are processed during graph execution. This enhancement specifically handles varying number of AQL (Architected Queue Language) packets for `memset` graph node due to graph node set params for AQL batch submission approach.
 * Async handler performance improvement:
 HIP runtime has removed the lock contention in async handler enqueue path. This enhancement reduces runtime overhead and maximizes GPU throughput, for asynchronous kernel execution, especially in multi-threaded applications.
 
@@ -42,11 +53,11 @@ HIP runtime has removed the lock contention in async handler enqueue path. This 
 
 ### Added
 
-* Support for the flag hipHostRegisterIoMemory in hipHostRegister, used to register I/O memory with HIP runtime so it can be accessed by the GPU.
+* Support for the flag `hipHostRegisterIoMemory` in `hipHostRegister`, used to register I/O memory with HIP runtime so it can be accessed by the GPU.
 
 ### Resolved issues
 
-* Incorrect Compute Unit (CU) mask in logging. HIP runtime now correctly sets the field width for the output print operation. When logging is enabled via the environment variable AMD_LOG_LEVEL, the runtime logs the accurate CU mask.
+* Incorrect Compute Unit (CU) mask in logging. HIP runtime now correctly sets the field width for the output print operation. When logging is enabled via the environment variable `AMD_LOG_LEVEL`, the runtime logs the accurate CU mask.
 * A segmentation fault occurred when dynamic queue management mechanism was enabled. HIP runtime now ensures GPU queues aren't NULL during marker submission, preventing crashes and improving robustness.
 * An error encountered on hip tear-down after device reset in certain applications due to accessing stale memory objects. HIP runtime now properly releases memory associated with host calls, ensuring reliable device resets.
 * A race condition occurred in certain graph-related applications when pending asynchronous signal handlers referenced device memory that had already been released, leading to memory corruption. HIP runtime now uses a reference counting strategy to manage access to device objects in asynchronous event handlers, ensuring safe and reliable memory usage.
@@ -76,11 +87,6 @@ HIP runtime has removed the lock contention in async handler enqueue path. This 
     - `hipGetDriverEntryPoint ` gets function pointer of a HIP API.
     - `hipSetValidDevices`      sets a default list of devices that can be used by HIP
     - `hipStreamGetId`          queries the id of a stream
-    - `hipLibraryLoadData`      Create library object from code
-    - `hipLibraryLoadFromFile`  Create library object from file
-    - `hipLibraryUnload`        Unload library
-    - `hipLibraryGetKernel`     Get a kernel from library
-    - `hipLibraryGetKernelCount` Get kernel count in library
 * Support for nested tile partitioning within cooperative groups, matching NVIDIA CUDA functionality.
 
 ### Resolved issues
@@ -93,10 +99,14 @@ HIP runtime has removed the lock contention in async handler enqueue path. This 
 
 * Improved hip module loading latency.
 * Optimized kernel metadata retrieval during module post load.
-* Optimized doorbell ring in HIP runtime, advantages the following for performance improvement,
+* Optimized doorbell ring in HIP runtime for the following performance improvements:
     - Makes efficient packet batching for HIP graph launch,
     - Dynamic packet copying based on defined maximum threshold or power-of-2 staggered copy pattern,
     - If timestamps are not collected for a signal for reuse, creates a new signal. This can potentially increase signal footprint if the handler doesn't run fast enough.
+
+### Known issues
+
+* SPIR-V-enabled applications may encounter an issue of segmentation fault. The problem disappears when SPIR-V is disabled. The issue will be fixed in the next ROCm release.
 
 ## HIP 7.0.2 for ROCm 7.0.2
 

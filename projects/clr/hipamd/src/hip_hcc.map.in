@@ -643,6 +643,11 @@ global:
     hipKernelGetLibrary;
     hipKernelGetName;
     hipOccupancyAvailableDynamicSMemPerBlock;
+    hipGetProcAddress_spt;
+    hipKernelGetParamInfo;
+    hipExtDisableLogging;
+    hipExtEnableLogging;
+    hipExtSetLoggingParams;
 local:
     *;
 } hip_7.1;

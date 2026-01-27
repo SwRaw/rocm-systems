@@ -467,7 +467,11 @@ enum hip_api_id_t {
   HIP_API_ID_hipLibraryEnumerateKernels = 447,
   HIP_API_ID_hipKernelGetName = 448,
   HIP_API_ID_hipOccupancyAvailableDynamicSMemPerBlock = 449,
-  HIP_API_ID_LAST = 449,
+  HIP_API_ID_hipKernelGetParamInfo = 450,
+  HIP_API_ID_hipExtDisableLogging = 451,
+  HIP_API_ID_hipExtEnableLogging = 452,
+  HIP_API_ID_hipExtSetLoggingParams = 453,
+  HIP_API_ID_LAST = 453,
 
   HIP_API_ID_hipChooseDevice = HIP_API_ID_CONCAT(HIP_API_ID_,hipChooseDevice),
   HIP_API_ID_hipGetDeviceProperties = HIP_API_ID_CONCAT(HIP_API_ID_,hipGetDeviceProperties),
@@ -589,12 +593,15 @@ static inline const char* hip_api_name(const uint32_t id) {
     case HIP_API_ID_hipEventRecord: return "hipEventRecord";
     case HIP_API_ID_hipEventRecordWithFlags: return "hipEventRecordWithFlags";
     case HIP_API_ID_hipEventSynchronize: return "hipEventSynchronize";
+    case HIP_API_ID_hipExtDisableLogging: return "hipExtDisableLogging";
+    case HIP_API_ID_hipExtEnableLogging: return "hipExtEnableLogging";
     case HIP_API_ID_hipExtGetLastError: return "hipExtGetLastError";
     case HIP_API_ID_hipExtGetLinkTypeAndHopCount: return "hipExtGetLinkTypeAndHopCount";
     case HIP_API_ID_hipExtLaunchKernel: return "hipExtLaunchKernel";
     case HIP_API_ID_hipExtLaunchMultiKernelMultiDevice: return "hipExtLaunchMultiKernelMultiDevice";
     case HIP_API_ID_hipExtMallocWithFlags: return "hipExtMallocWithFlags";
     case HIP_API_ID_hipExtModuleLaunchKernel: return "hipExtModuleLaunchKernel";
+    case HIP_API_ID_hipExtSetLoggingParams: return "hipExtSetLoggingParams";
     case HIP_API_ID_hipExtStreamCreateWithCUMask: return "hipExtStreamCreateWithCUMask";
     case HIP_API_ID_hipExtStreamGetCUMask: return "hipExtStreamGetCUMask";
     case HIP_API_ID_hipExternalMemoryGetMappedBuffer: return "hipExternalMemoryGetMappedBuffer";
@@ -733,6 +740,7 @@ static inline const char* hip_api_name(const uint32_t id) {
     case HIP_API_ID_hipIpcOpenMemHandle: return "hipIpcOpenMemHandle";
     case HIP_API_ID_hipKernelGetLibrary: return "hipKernelGetLibrary";
     case HIP_API_ID_hipKernelGetName: return "hipKernelGetName";
+    case HIP_API_ID_hipKernelGetParamInfo: return "hipKernelGetParamInfo";
     case HIP_API_ID_hipLaunchByPtr: return "hipLaunchByPtr";
     case HIP_API_ID_hipLaunchCooperativeKernel: return "hipLaunchCooperativeKernel";
     case HIP_API_ID_hipLaunchCooperativeKernelMultiDevice: return "hipLaunchCooperativeKernelMultiDevice";
@@ -1032,12 +1040,15 @@ static inline uint32_t hipApiIdByName(const char* name) {
   if (strcmp("hipEventRecord", name) == 0) return HIP_API_ID_hipEventRecord;
   if (strcmp("hipEventRecordWithFlags", name) == 0) return HIP_API_ID_hipEventRecordWithFlags;
   if (strcmp("hipEventSynchronize", name) == 0) return HIP_API_ID_hipEventSynchronize;
+  if (strcmp("hipExtDisableLogging", name) == 0) return HIP_API_ID_hipExtDisableLogging;
+  if (strcmp("hipExtEnableLogging", name) == 0) return HIP_API_ID_hipExtEnableLogging;
   if (strcmp("hipExtGetLastError", name) == 0) return HIP_API_ID_hipExtGetLastError;
   if (strcmp("hipExtGetLinkTypeAndHopCount", name) == 0) return HIP_API_ID_hipExtGetLinkTypeAndHopCount;
   if (strcmp("hipExtLaunchKernel", name) == 0) return HIP_API_ID_hipExtLaunchKernel;
   if (strcmp("hipExtLaunchMultiKernelMultiDevice", name) == 0) return HIP_API_ID_hipExtLaunchMultiKernelMultiDevice;
   if (strcmp("hipExtMallocWithFlags", name) == 0) return HIP_API_ID_hipExtMallocWithFlags;
   if (strcmp("hipExtModuleLaunchKernel", name) == 0) return HIP_API_ID_hipExtModuleLaunchKernel;
+  if (strcmp("hipExtSetLoggingParams", name) == 0) return HIP_API_ID_hipExtSetLoggingParams;
   if (strcmp("hipExtStreamCreateWithCUMask", name) == 0) return HIP_API_ID_hipExtStreamCreateWithCUMask;
   if (strcmp("hipExtStreamGetCUMask", name) == 0) return HIP_API_ID_hipExtStreamGetCUMask;
   if (strcmp("hipExternalMemoryGetMappedBuffer", name) == 0) return HIP_API_ID_hipExternalMemoryGetMappedBuffer;
@@ -1176,6 +1187,7 @@ static inline uint32_t hipApiIdByName(const char* name) {
   if (strcmp("hipIpcOpenMemHandle", name) == 0) return HIP_API_ID_hipIpcOpenMemHandle;
   if (strcmp("hipKernelGetLibrary", name) == 0) return HIP_API_ID_hipKernelGetLibrary;
   if (strcmp("hipKernelGetName", name) == 0) return HIP_API_ID_hipKernelGetName;
+  if (strcmp("hipKernelGetParamInfo", name) == 0) return HIP_API_ID_hipKernelGetParamInfo;
   if (strcmp("hipLaunchByPtr", name) == 0) return HIP_API_ID_hipLaunchByPtr;
   if (strcmp("hipLaunchCooperativeKernel", name) == 0) return HIP_API_ID_hipLaunchCooperativeKernel;
   if (strcmp("hipLaunchCooperativeKernelMultiDevice", name) == 0) return HIP_API_ID_hipLaunchCooperativeKernelMultiDevice;
@@ -1848,6 +1860,11 @@ typedef struct hip_api_data_s {
       hipEvent_t stopEvent;
       unsigned int flags;
     } hipExtModuleLaunchKernel;
+    struct {
+      size_t log_level;
+      size_t log_size;
+      size_t log_mask;
+    } hipExtSetLoggingParams;
     struct {
       hipStream_t* stream;
       hipStream_t stream__val;
@@ -2694,6 +2711,14 @@ typedef struct hip_api_data_s {
       const char* name__val;
       hipKernel_t kernel;
     } hipKernelGetName;
+    struct {
+      hipKernel_t kernel;
+      size_t paramIndex;
+      size_t* paramOffset;
+      size_t paramOffset__val;
+      size_t* paramSize;
+      size_t paramSize__val;
+    } hipKernelGetParamInfo;
     struct {
       const void* hostFunction;
     } hipLaunchByPtr;
@@ -4473,6 +4498,12 @@ typedef struct hip_api_data_s {
 #define INIT_hipEventSynchronize_CB_ARGS_DATA(cb_data) { \
   cb_data.args.hipEventSynchronize.event = (hipEvent_t)event; \
 };
+// hipExtDisableLogging[]
+#define INIT_hipExtDisableLogging_CB_ARGS_DATA(cb_data) { \
+};
+// hipExtEnableLogging[]
+#define INIT_hipExtEnableLogging_CB_ARGS_DATA(cb_data) { \
+};
 // hipExtGetLastError[]
 #define INIT_hipExtGetLastError_CB_ARGS_DATA(cb_data) { \
 };
@@ -4523,6 +4554,12 @@ typedef struct hip_api_data_s {
   cb_data.args.hipExtModuleLaunchKernel.startEvent = (hipEvent_t)startEvent; \
   cb_data.args.hipExtModuleLaunchKernel.stopEvent = (hipEvent_t)stopEvent; \
   cb_data.args.hipExtModuleLaunchKernel.flags = (unsigned int)flags; \
+};
+// hipExtSetLoggingParams[('size_t', 'log_level'), ('size_t', 'log_size'), ('size_t', 'log_mask')]
+#define INIT_hipExtSetLoggingParams_CB_ARGS_DATA(cb_data) { \
+  cb_data.args.hipExtSetLoggingParams.log_level = (size_t)log_level; \
+  cb_data.args.hipExtSetLoggingParams.log_size = (size_t)log_size; \
+  cb_data.args.hipExtSetLoggingParams.log_mask = (size_t)log_mask; \
 };
 // hipExtStreamCreateWithCUMask[('hipStream_t*', 'stream'), ('unsigned int', 'cuMaskSize'), ('const unsigned int*', 'cuMask')]
 #define INIT_hipExtStreamCreateWithCUMask_CB_ARGS_DATA(cb_data) { \
@@ -5351,6 +5388,13 @@ typedef struct hip_api_data_s {
 #define INIT_hipKernelGetName_CB_ARGS_DATA(cb_data) { \
   cb_data.args.hipKernelGetName.name = (const char**)name; \
   cb_data.args.hipKernelGetName.kernel = (hipKernel_t)kernel; \
+};
+// hipKernelGetParamInfo[('hipKernel_t', 'kernel'), ('size_t', 'paramIndex'), ('size_t*', 'paramOffset'), ('size_t*', 'paramSize')]
+#define INIT_hipKernelGetParamInfo_CB_ARGS_DATA(cb_data) { \
+  cb_data.args.hipKernelGetParamInfo.kernel = (hipKernel_t)kernel; \
+  cb_data.args.hipKernelGetParamInfo.paramIndex = (size_t)paramIndex; \
+  cb_data.args.hipKernelGetParamInfo.paramOffset = (size_t*)paramOffset; \
+  cb_data.args.hipKernelGetParamInfo.paramSize = (size_t*)paramSize; \
 };
 // hipLaunchByPtr[('const void*', 'hostFunction')]
 #define INIT_hipLaunchByPtr_CB_ARGS_DATA(cb_data) { \
@@ -7107,6 +7151,12 @@ static inline void hipApiArgsInit(hip_api_id_t id, hip_api_data_t* data) {
 // hipEventSynchronize[('hipEvent_t', 'event')]
     case HIP_API_ID_hipEventSynchronize:
       break;
+// hipExtDisableLogging[]
+    case HIP_API_ID_hipExtDisableLogging:
+      break;
+// hipExtEnableLogging[]
+    case HIP_API_ID_hipExtEnableLogging:
+      break;
 // hipExtGetLastError[]
     case HIP_API_ID_hipExtGetLastError:
       break;
@@ -7131,6 +7181,9 @@ static inline void hipApiArgsInit(hip_api_id_t id, hip_api_data_t* data) {
     case HIP_API_ID_hipExtModuleLaunchKernel:
       if (data->args.hipExtModuleLaunchKernel.kernelParams) data->args.hipExtModuleLaunchKernel.kernelParams__val = *(data->args.hipExtModuleLaunchKernel.kernelParams);
       if (data->args.hipExtModuleLaunchKernel.extra) data->args.hipExtModuleLaunchKernel.extra__val = *(data->args.hipExtModuleLaunchKernel.extra);
+      break;
+// hipExtSetLoggingParams[('size_t', 'log_level'), ('size_t', 'log_size'), ('size_t', 'log_mask')]
+    case HIP_API_ID_hipExtSetLoggingParams:
       break;
 // hipExtStreamCreateWithCUMask[('hipStream_t*', 'stream'), ('unsigned int', 'cuMaskSize'), ('const unsigned int*', 'cuMask')]
     case HIP_API_ID_hipExtStreamCreateWithCUMask:
@@ -7697,6 +7750,11 @@ static inline void hipApiArgsInit(hip_api_id_t id, hip_api_data_t* data) {
 // hipKernelGetName[('const char**', 'name'), ('hipKernel_t', 'kernel')]
     case HIP_API_ID_hipKernelGetName:
       if (data->args.hipKernelGetName.name) data->args.hipKernelGetName.name__val = *(data->args.hipKernelGetName.name);
+      break;
+// hipKernelGetParamInfo[('hipKernel_t', 'kernel'), ('size_t', 'paramIndex'), ('size_t*', 'paramOffset'), ('size_t*', 'paramSize')]
+    case HIP_API_ID_hipKernelGetParamInfo:
+      if (data->args.hipKernelGetParamInfo.paramOffset) data->args.hipKernelGetParamInfo.paramOffset__val = *(data->args.hipKernelGetParamInfo.paramOffset);
+      if (data->args.hipKernelGetParamInfo.paramSize) data->args.hipKernelGetParamInfo.paramSize__val = *(data->args.hipKernelGetParamInfo.paramSize);
       break;
 // hipLaunchByPtr[('const void*', 'hostFunction')]
     case HIP_API_ID_hipLaunchByPtr:
@@ -9101,6 +9159,14 @@ static inline const char* hipApiString(hip_api_id_t id, const hip_api_data_t* da
       oss << "event="; roctracer::hip_support::detail::operator<<(oss, data->args.hipEventSynchronize.event);
       oss << ")";
     break;
+    case HIP_API_ID_hipExtDisableLogging:
+      oss << "hipExtDisableLogging(";
+      oss << ")";
+    break;
+    case HIP_API_ID_hipExtEnableLogging:
+      oss << "hipExtEnableLogging(";
+      oss << ")";
+    break;
     case HIP_API_ID_hipExtGetLastError:
       oss << "hipExtGetLastError(";
       oss << ")";
@@ -9163,6 +9229,13 @@ static inline const char* hipApiString(hip_api_id_t id, const hip_api_data_t* da
       oss << ", startEvent="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtModuleLaunchKernel.startEvent);
       oss << ", stopEvent="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtModuleLaunchKernel.stopEvent);
       oss << ", flags="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtModuleLaunchKernel.flags);
+      oss << ")";
+    break;
+    case HIP_API_ID_hipExtSetLoggingParams:
+      oss << "hipExtSetLoggingParams(";
+      oss << "log_level="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtSetLoggingParams.log_level);
+      oss << ", log_size="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtSetLoggingParams.log_size);
+      oss << ", log_mask="; roctracer::hip_support::detail::operator<<(oss, data->args.hipExtSetLoggingParams.log_mask);
       oss << ")";
     break;
     case HIP_API_ID_hipExtStreamCreateWithCUMask:
@@ -10287,6 +10360,16 @@ static inline const char* hipApiString(hip_api_id_t id, const hip_api_data_t* da
       if (data->args.hipKernelGetName.name == NULL) oss << "name=NULL";
       else { oss << "name="; roctracer::hip_support::detail::operator<<(oss, (void*)data->args.hipKernelGetName.name__val); }
       oss << ", kernel="; roctracer::hip_support::detail::operator<<(oss, data->args.hipKernelGetName.kernel);
+      oss << ")";
+    break;
+    case HIP_API_ID_hipKernelGetParamInfo:
+      oss << "hipKernelGetParamInfo(";
+      oss << "kernel="; roctracer::hip_support::detail::operator<<(oss, data->args.hipKernelGetParamInfo.kernel);
+      oss << ", paramIndex="; roctracer::hip_support::detail::operator<<(oss, data->args.hipKernelGetParamInfo.paramIndex);
+      if (data->args.hipKernelGetParamInfo.paramOffset == NULL) oss << ", paramOffset=NULL";
+      else { oss << ", paramOffset="; roctracer::hip_support::detail::operator<<(oss, data->args.hipKernelGetParamInfo.paramOffset__val); }
+      if (data->args.hipKernelGetParamInfo.paramSize == NULL) oss << ", paramSize=NULL";
+      else { oss << ", paramSize="; roctracer::hip_support::detail::operator<<(oss, data->args.hipKernelGetParamInfo.paramSize__val); }
       oss << ")";
     break;
     case HIP_API_ID_hipLaunchByPtr:
